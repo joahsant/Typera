@@ -1,0 +1,17 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "save": "Salvar",
+    "saved": "Salvo"
+  },
+  "modes": {
+    "studio": "Studio",
+    "forge": "Forge",
+    "academy": "Academy",
+    "coming_soon": "Em breve"
+  },
+  "studio": {
+    "preview_placeholder": "Digite uma palavra..."
+  }
+}
