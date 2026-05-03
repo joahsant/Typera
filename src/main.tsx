@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -5,21 +6,27 @@ import './index.css';
 import './i18n';
 import * as Sentry from "@sentry/react";
 
-if (import.meta.env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-    integrations: [
-      new Sentry.BrowserTracing(),
-      new Sentry.Replay(),
-    ],
-    tracesSampleRate: 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-  });
-}
+window.onerror = function(message, source, lineno, colno, error) {
+  document.body.innerHTML = `<div style="padding: 20px; color: red;"><h1>Runtime Error</h1><pre>${message}</pre></div>`;
+};
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+console.log("Typera: Starting application...");
+
+/*
+if (import.meta.env.VITE_SENTRY_DSN) {
+  ...
+}
+*/
+
+console.log("Typera: Mounting React app...");
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  console.error("Typera: Root element not found!");
+} else {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+  console.log("Typera: React app mounted.");
+}

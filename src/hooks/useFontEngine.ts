@@ -44,8 +44,9 @@ export const useFontEngine = () => {
       const { parameters } = activeProject;
 
       // 2. Aplica as transformações em cada glifo
-      Object.values(font.glyphs.map).forEach((glyph: any) => {
-        if (!glyph.path || !glyph.unicode) return;
+      for (let i = 0; i < font.glyphs.length; i++) {
+        const glyph = font.glyphs.get(i);
+        if (!glyph.path || !glyph.unicode) continue;
 
         const isLowercase = glyph.unicode >= 97 && glyph.unicode <= 122;
 
@@ -54,7 +55,7 @@ export const useFontEngine = () => {
         fontTransforms.applySlant(glyph.path, parameters.slant);
         fontTransforms.applyContrast(glyph.path, parameters.contrast);
         fontTransforms.applyXHeight(glyph.path, parameters.xHeight, isLowercase);
-      });
+      }
 
       // 3. Converte para ArrayBuffer e cria a URL de Blob
       const buffer = font.toArrayBuffer();

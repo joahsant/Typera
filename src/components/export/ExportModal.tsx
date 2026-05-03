@@ -30,15 +30,16 @@ const ExportModal: React.FC<ExportModalProps> = ({ open, onOpenChange }) => {
       const font = await fontEngine.loadFont('/fonts/Inter-Regular.ttf');
       const { parameters } = activeProject;
 
-      Object.values(font.glyphs.map).forEach((glyph: any) => {
-        if (!glyph.path || !glyph.unicode) return;
+      for (let i = 0; i < font.glyphs.length; i++) {
+        const glyph = font.glyphs.get(i);
+        if (!glyph.path || !glyph.unicode) continue;
         const isLowercase = glyph.unicode >= 97 && glyph.unicode <= 122;
         fontTransforms.applyWeight(glyph.path, parameters.weight);
         fontTransforms.applyWidth(glyph.path, parameters.width);
         fontTransforms.applySlant(glyph.path, parameters.slant);
         fontTransforms.applyContrast(glyph.path, parameters.contrast);
         fontTransforms.applyXHeight(glyph.path, parameters.xHeight, isLowercase);
-      });
+      }
 
       // 2. Renomeia a fonte internamente
       (font.names as any).fontFamily.en = activeProject.name;
