@@ -5,13 +5,15 @@ import Preview from './modes/Preview';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Studio />} />
-        <Route path="/preview" element={<Preview />} />
-        {/* Adicionar rotas para Forge e Academy na V2 */}
-      </Routes>
-    </Router>
+    <div style={{ height: '100vh', width: '100vw', background: '#0D0D0D', color: '#C8FF00', overflow: 'auto' }}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Studio />} />
+          <Route path="/preview" element={<Preview />} />
+          <Route path="/test" element={<div>Test Page</div>} />
+        </Routes>
+      </Router>
+    </div>
   );
 }
 

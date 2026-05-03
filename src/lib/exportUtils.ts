@@ -1,78 +1,78 @@
+/**
+ * @module exportUtils
+ * @description Utilities for packaging and downloading font exports.
+ * Generates ZIP bundles with TTF/WOFF2 + README.
+ */
+
 import JSZip from 'jszip';
 import * as opentype from 'opentype.js';
-// @ts-ignore
+// @ts-ignore – wawoff2 has no type declarations
 import { compress } from 'wawoff2';
 import { FontProject } from '../types/font';
 
 export const exportUtils = {
   /**
-   * Gera um pacote ZIP contendo a fonte em múltiplos formatos.
+   * Generates a ZIP blob containing the font in all requested formats + README.
+   * @param font      Mutated opentype.Font object
+   * @param project   Active FontProject (for metadata)
+   * @param formats   Array of format ids: 'ttf' | 'woff2'
    */
-  generatePackage: async (font: opentype.Font, project: FontProject, formats: string[]): Promise<Blob> => {
-    const zip = new JSZip();
-    const folder = zip.folder(`${project.name}-Typera`);
-
-    // 1. Gerar TTF (Base)
+  generatePackage: async (
+    font: opentype.Font,
+    project: FontProject,
+    formats: string[]
+  ): Promise<Blob> => {
+    const zip       = new JSZip();
+    const safeName  = project.name.replace(/[/\\?%*:|"<>]/g, '-');
+    const folder    = zip.folder(`${safeName}-Typera`)!;
     const ttfBuffer = font.toArrayBuffer();
-    const safeName = project.name.replace(/[\/\\?%*:|"<>]/g, '-');
 
     if (formats.includes('ttf')) {
-      folder?.file(`${safeName}.ttf`, ttfBuffer);
+      folder.file(`${safeName}.ttf`, ttfBuffer);
     }
 
-    // 2. Gerar WOFF2 (Via WASM)
     if (formats.includes('woff2')) {
       try {
-        const uint8Array = new Uint8Array(ttfBuffer);
-        const woff2Buffer = await compress(uint8Array);
-        folder?.file(`${safeName}.woff2`, woff2Buffer);
+        const woff2 = await compress(new Uint8Array(ttfBuffer));
+        folder.file(`${safeName}.woff2`, woff2);
       } catch (e) {
-        console.error('Erro ao gerar WOFF2:', e);
+        console.warn('[exportUtils] WOFF2 compression failed, skipping:', e);
       }
     }
 
-    // 3. Adicionar README.txt (Documentação de Qualidade)
-    const readmeContent = `
+    const readme = `
 # ${project.name}
-Gerada via Typera — "To type, for type, you type."
+Gerado via Typera — "To type, for type, you type."
+Data: ${new Date().toLocaleDateString('pt-BR')}
 
-## Detalhes da Fonte
-- Nome: ${project.name}
-- Categoria: ${project.category}
-- Designer: ${project.metadata.designer}
-- Licença: ${project.metadata.license}
-- Data de Criação: ${new Date().toLocaleDateString()}
-
-## Parâmetros Utilizados
+## Parâmetros
 ${Object.entries(project.parameters).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
 
----
-Instruções:
-- Windows/macOS: Clique duas vezes no arquivo .ttf para instalar.
-- Web: Use o formato .woff2 para melhor performance.
-    `;
+## Instalação
+- Windows / macOS: clique duas vezes no .ttf
+- Web: use o .woff2 via @font-face
+    `.trim();
 
-    folder?.file('README.txt', readmeContent);
+    folder.file('README.txt', readme);
 
-    return await zip.generateAsync({ type: 'blob' });
+    return zip.generateAsync({ type: 'blob' });
   },
 
   /**
-   * Dispara o download no browser.
+   * Triggers a browser file download for the given Blob.
+   * Uses a temporary <a> element safely cleaned up after click.
    */
-  downloadBlob: (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob);
+  downloadBlob: (blob: Blob, filename: string): void => {
+    const url  = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
+    link.href     = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    // Use remove() which works whether or not the element is attached to the DOM
-    if (link.parentNode) {
-      link.parentNode.removeChild(link);
-    } else {
-      link.remove();
-    }
-    URL.revokeObjectURL(url);
-  }
+    // Wait one tick so the browser registers the click before cleanup
+    setTimeout(() => {
+      if (link.parentNode) link.parentNode.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+  },
 };

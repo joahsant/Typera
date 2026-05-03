@@ -1,29 +1,28 @@
+/**
+ * @module fontEngine
+ * @description Low-level font I/O utilities (load from URL, convert to buffer).
+ * Used by ExportModal and any future tool that needs a one-shot font load.
+ *
+ * NOTE: The live preview pipeline uses useFontEngine (hook) which manages its
+ * own buffer internally for performance. This module is for explicit, one-time loads.
+ *
+ * @status ACTIVE – used by ExportModal
+ */
+
 import * as opentype from 'opentype.js';
 
-/**
- * Engine responsável pelo carregamento e gerenciamento binário de fontes.
- */
 export const fontEngine = {
   /**
-   * Carrega uma fonte a partir de uma URL ou caminho local.
+   * Loads a font from a URL and returns an opentype.Font instance.
+   * Prefer `fetch + opentype.parse` for ArrayBuffer control; this is a convenience wrapper.
    */
   loadFont: async (url: string): Promise<opentype.Font> => {
-    return new Promise((resolve, reject) => {
-      opentype.load(url, (err, font) => {
-        if (err) {
-          console.error('Erro ao carregar fonte:', err);
-          reject(err);
-        } else if (font) {
-          resolve(font);
-        }
-      });
-    });
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status} fetching font from ${url}`);
+    const buffer = await res.arrayBuffer();
+    return opentype.parse(buffer);
   },
 
-  /**
-   * Converte o objeto font de volta para um ArrayBuffer (para exportação).
-   */
-  fontToBuffer: (font: opentype.Font): ArrayBuffer => {
-    return font.toArrayBuffer();
-  }
+  /** Converts a font object back to a raw ArrayBuffer (for export). */
+  fontToBuffer: (font: opentype.Font): ArrayBuffer => font.toArrayBuffer(),
 };
