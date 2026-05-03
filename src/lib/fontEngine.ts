@@ -1,4 +1,4 @@
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 
 /**
  * Engine responsável pelo carregamento e gerenciamento binário de fontes.

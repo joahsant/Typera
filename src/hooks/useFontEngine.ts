@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useFontStore } from '../stores/fontStore';
 import { fontEngine } from '../lib/fontEngine';
 import { fontTransforms } from '../lib/fontTransforms';
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 
 /**
  * Hook personalizado para gerenciar a mutação da fonte em tempo real.

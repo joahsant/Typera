@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 // @ts-ignore
 import { compress } from 'wawoff2';
 import { FontProject } from '../types/font';

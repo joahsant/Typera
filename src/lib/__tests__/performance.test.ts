@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 import { fontTransforms } from '../fontTransforms';
 
 /**
