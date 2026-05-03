@@ -67,7 +67,12 @@ Instruções:
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    // Use remove() which works whether or not the element is attached to the DOM
+    if (link.parentNode) {
+      link.parentNode.removeChild(link);
+    } else {
+      link.remove();
+    }
     URL.revokeObjectURL(url);
   }
 };

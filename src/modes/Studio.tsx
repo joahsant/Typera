@@ -7,37 +7,30 @@ import ExportModal from '../components/export/ExportModal';
 import LibraryModal from '../components/library/LibraryModal';
 import { useAutosave } from '../hooks/useAutosave';
 import { shareUtils } from '../lib/shareUtils';
+import { Sun, Moon, Undo2, Redo2, LayoutGrid, Share2, Eye, Download, Play } from 'lucide-react';
 
 const Studio: React.FC = () => {
   const { t } = useTranslation();
-  const { previewText, activeProject, undo, redo, previewFontSize } = useFontStore();
+  const { previewText, activeProject, undo, redo, previewFontSize, theme, setTheme } = useFontStore();
   const { fontUrl } = useFontEngine();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
-  // Ativa o autosave automático
+  useEffect(() => {
+    // Sincronização de tema centralizada no store
+  }, [theme]);
+
   useAutosave();
 
-  // Aplica a fonte dinâmica via style tag
+  // A aplicação da fonte agora é feita via JSX para evitar manipulação manual do DOM
+  // que pode causar erros de Reconciliação (removeChild) no React.
+
+  const [appliedFontName, setAppliedFontName] = useState('sans-serif');
+
   useEffect(() => {
-    if (!fontUrl) return;
-
-    const styleId = 'dynamic-typera-font';
-    let style = document.getElementById(styleId) as HTMLStyleElement;
-
-    if (!style) {
-      style = document.createElement('style');
-      style.id = styleId;
-      document.head.appendChild(style);
+    if (fontUrl) {
+      setAppliedFontName(`TyperaDynamic-${Date.now()}`);
     }
-
-    style.innerHTML = `
-      @font-face {
-        font-family: 'TyperaDynamic';
-        src: url('${fontUrl}') format('truetype');
-        font-display: block;
-      }
-    `;
   }, [fontUrl]);
 
   const handleShare = () => {
@@ -52,110 +45,103 @@ const Studio: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col h-full bg-base transition-colors duration-300`}>
-      {/* Header Fixo */}
-      <header className="h-header border-b border-border bg-surface flex items-center justify-between px-4 z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-preview-text font-bold text-xs">
-            J
+    <div className="h-screen w-screen flex flex-col bg-m3-surface text-m3-on-surface overflow-hidden">
+      {/* Premium Header */}
+      <header className="h-[72px] shrink-0 border-b border-m3-outline/10 bg-m3-surface/70 backdrop-blur-3xl flex items-center justify-between px-8 z-50">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.location.href = '/'}>
+            <div className="w-10 h-10 rounded-2xl bg-m3-primary flex items-center justify-center text-m3-on-primary font-display font-black text-lg shadow-2xl shadow-m3-primary/20 group-hover:scale-110 transition-transform duration-500">
+              T
+            </div>
+            <div className="flex flex-col">
+              <h1 className="font-display text-xl font-black text-m3-primary tracking-tighter leading-none">TYPERA</h1>
+              <span className="text-[9px] font-bold text-m3-on-surface-variant uppercase tracking-[0.3em] mt-1">Font Engine</span>
+            </div>
           </div>
-          <h1 className="font-display text-xl text-accent tracking-tighter">TYPERA</h1>
 
-          {/* Undo/Redo integrados no Header ao lado do Perfil */}
-          <div className="flex gap-1 bg-base/50 rounded-lg p-1 ml-2 border border-border/50">
-            <button
-              onClick={undo}
-              title="Undo (Ctrl+Z)"
-              className="p-1 hover:bg-hover rounded text-secondary transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-15 9 9 0 0 0-9 15c1.65 1.66 3.7 2.7 5.93 3"/></svg>
-            </button>
-            <button
-              onClick={redo}
-              title="Redo (Ctrl+Y)"
-              className="p-1 hover:bg-hover rounded text-secondary transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-15 9 9 0 0 1 9 15c-1.65 1.66-3.7 2.7-5.93 3"/></svg>
-            </button>
-          </div>
+          <nav className="hidden md:flex gap-1 bg-m3-surface-container p-1 rounded-full border border-m3-outline/10">
+            <button className="text-[9px] font-black uppercase tracking-widest px-5 py-2 bg-m3-primary text-m3-on-primary rounded-full transition-all">{t('modes.studio')}</button>
+            <button className="text-[9px] font-black uppercase tracking-widest px-5 py-2 text-m3-on-surface-variant/30">{t('modes.forge')}</button>
+          </nav>
         </div>
 
-        <nav className="flex gap-6">
-          <button className="text-sm font-medium border-b-2 border-accent py-4">{t('modes.studio')}</button>
-          <button className="text-sm font-medium text-secondary py-4 opacity-50 cursor-not-allowed">{t('modes.forge')}</button>
-          <button className="text-sm font-medium text-secondary py-4 opacity-50 cursor-not-allowed">{t('modes.academy')}</button>
-        </nav>
-
         <div className="flex items-center gap-4">
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-muted font-mono uppercase tracking-tighter leading-none mb-1">Projeto Ativo</span>
-            <span className="text-xs text-primary font-medium leading-none truncate max-w-[100px]">{activeProject.name}</span>
+          <div className="flex gap-1 bg-m3-surface-container p-1 rounded-2xl border border-m3-outline/5">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="w-10 h-10 flex items-center justify-center rounded-xl text-m3-on-surface-variant hover:bg-m3-surface-variant hover:text-m3-primary transition-all active:scale-90"
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <div className="w-px h-6 bg-m3-outline/10 my-auto mx-1" />
+            <button onClick={undo} className="w-10 h-10 flex items-center justify-center rounded-xl text-m3-on-surface-variant hover:bg-m3-surface-variant hover:text-m3-primary"><Undo2 size={18} /></button>
+            <button onClick={redo} className="w-10 h-10 flex items-center justify-center rounded-xl text-m3-on-surface-variant hover:bg-m3-surface-variant hover:text-m3-primary"><Redo2 size={18} /></button>
           </div>
+
           <button
             onClick={() => setIsLibraryOpen(true)}
-            className="w-8 h-8 rounded bg-elevated border border-border flex items-center justify-center hover:border-accent transition-colors group"
+            className="w-11 h-11 rounded-2xl bg-m3-surface-variant border border-m3-outline/10 flex items-center justify-center hover:border-m3-primary transition-all"
           >
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:text-accent transition-colors"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="M3 9V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/></svg>
+             <LayoutGrid size={20} className="text-m3-on-surface-variant" />
           </button>
         </div>
       </header>
 
-      {/* Body Layout 75/25 */}
+      {/* Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Lado Esquerdo (75%) - Workspace */}
-        <section className="w-[75%] h-full p-4 flex flex-col relative bg-base">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="bg-preview-bg rounded-preview shadow-preview p-12 w-full h-[80%] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300">
-               <span className="absolute top-8 left-10 text-[10px] font-mono text-muted/30 uppercase tracking-widest">Studio Preview</span>
+        {/* Workspace Area (Fixed Preview) */}
+        <section className="flex-1 h-full p-6 md:p-10 flex flex-col relative overflow-hidden bg-m3-surface">
+          <div className="flex-1 h-full flex flex-col items-center justify-center bg-preview-bg rounded-preview shadow-preview relative overflow-hidden border border-m3-outline/5">
+             {/* Engine Status */}
+             <div className="absolute top-10 left-12 flex items-center gap-3">
+               <div className="w-2.5 h-2.5 rounded-full bg-m3-primary animate-ping absolute opacity-50" />
+               <div className="w-2.5 h-2.5 rounded-full bg-m3-primary" />
+               <span className="text-[10px] font-display text-m3-on-surface/40 uppercase tracking-[0.4em] font-black">Mutation System Online</span>
+             </div>
 
-               <div className="w-full text-center">
-                  <p
-                    className="text-preview-text leading-tight break-words outline-none transition-all duration-75"
-                    style={{
-                      fontSize: `${previewFontSize}px`,
-                      fontFamily: fontUrl ? 'TyperaDynamic' : 'sans-serif'
-                    }}
-                  >
-                    {previewText || 'Aa'}
-                  </p>
-               </div>
+             {/* Main Typography Preview */}
+             <div className="flex-1 w-full flex items-center justify-center px-12 overflow-hidden">
+                <p
+                  key={appliedFontName}
+                  className="text-preview-text leading-none break-words outline-none select-all text-center"
+                  style={{
+                    fontSize: `${previewFontSize}px`,
+                    fontFamily: appliedFontName,
+                    letterSpacing: `${activeProject.parameters.tracking / 100}em`
+                  }}
+                >
+                  {previewText || 'Aa'}
+                </p>
+             </div>
 
-               <div className="mt-12 w-full max-w-2xl border-t border-border/10 pt-8 flex justify-center flex-wrap gap-2 opacity-40">
-                  <span className="text-preview-text/60 text-sm font-mono tracking-widest">
-                    ABCDEFGHIJKLM NOPQRSTUVWXYZ 0123456789
-                  </span>
-               </div>
-            </div>
+             {/* Specimen Strip */}
+             <div className="mb-20 w-full max-w-2xl border-t border-m3-on-surface/5 pt-8 flex justify-center opacity-30">
+                <span className="text-preview-text/60 text-[10px] font-mono tracking-[0.3em] font-black text-center uppercase">
+                  ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789
+                </span>
+             </div>
+
+             {/* Floating Action Bar */}
+             <footer className="absolute bottom-10 flex items-center gap-2 p-1.5 bg-m3-surface-container/80 backdrop-blur-3xl border border-m3-outline/10 rounded-[28px] shadow-2xl">
+                <button onClick={handleView} className="px-6 py-3 hover:bg-m3-primary/10 rounded-full transition-all group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-m3-on-surface-variant hover:text-m3-primary">
+                  <Eye size={14} /> {t('studio.view')}
+                </button>
+                <div className="w-px h-5 bg-m3-outline/10" />
+                <button onClick={handleShare} className="px-6 py-3 hover:bg-m3-primary/10 rounded-full transition-all group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-m3-on-surface-variant hover:text-m3-primary">
+                  <Share2 size={14} /> {t('studio.share')}
+                </button>
+                <button onClick={() => setIsExportOpen(true)} className="px-8 py-3 bg-m3-primary text-m3-on-primary rounded-full transition-all text-[10px] font-black uppercase tracking-widest hover:shadow-lg shadow-m3-primary/20">
+                  {t('studio.export')}
+                </button>
+             </footer>
           </div>
-
-          {/* Footer de Ações (Fixo 75%) */}
-          <footer className="h-footer absolute bottom-0 left-0 w-full bg-surface border-t border-border flex items-center justify-around px-8">
-             <button
-              onClick={handleView}
-              className="flex items-center gap-2 text-xs font-medium hover:text-accent transition-colors group"
-             >
-               <span className="group-hover:scale-110 transition-transform">👁</span> Visualizar
-             </button>
-             <button
-              onClick={handleShare}
-              className="flex items-center gap-2 text-xs font-medium hover:text-accent transition-colors group"
-             >
-               <span className="group-hover:scale-110 transition-transform">↗</span> Compartilhar
-             </button>
-             <button
-              onClick={() => setIsExportOpen(true)}
-              className="flex items-center gap-2 text-xs font-medium hover:text-accent transition-colors group"
-             >
-               <span className="group-hover:scale-110 transition-transform">⬇</span> Exportar
-             </button>
-          </footer>
 
           <ExportModal open={isExportOpen} onOpenChange={setIsExportOpen} />
           <LibraryModal open={isLibraryOpen} onOpenChange={setIsLibraryOpen} />
         </section>
 
-        {/* Lado Direito (25%) - Painel de Controle */}
-        <section className="w-[25%] h-full">
+        {/* Sidebar Controls (Scrollable) */}
+        <section className="w-[400px] h-full border-l border-m3-outline/10 bg-m3-surface-container z-20 overflow-hidden flex flex-col">
           <ControlPanel />
         </section>
       </div>

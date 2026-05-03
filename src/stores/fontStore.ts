@@ -11,7 +11,7 @@ interface FontState extends SystemState {
 
   // Actions
   setProject: (project: FontProject) => void;
-  setParameter: (key: keyof FontParameters, value: any) => void;
+  setParameter: (key: keyof FontParameters | 'category' | 'name', value: any) => void;
   setPreviewText: (text: string) => void;
   setPreviewFontSize: (size: number) => void;
   setTheme: (theme: 'dark' | 'light') => void;
@@ -78,17 +78,17 @@ export const useFontStore = create<FontState>((set, get) => ({
 
   setParameter: (key, value) => {
     const { activeProject } = get();
-
-    // Sanitização para o nome da fonte
     let finalValue = value;
-    if (key as string === 'name') {
-      finalValue = validation.sanitizeString(value);
-    }
+    if (key === 'name') finalValue = validation.sanitizeString(value);
+
+    const isTopLevel = ['name', 'category'].includes(key as string);
 
     const newProject = {
       ...activeProject,
-      parameters: (key as string) === 'name' ? activeProject.parameters : { ...activeProject.parameters, [key]: finalValue },
-      name: (key as string) === 'name' ? finalValue : activeProject.name,
+      [key]: finalValue,
+      parameters: isTopLevel 
+        ? activeProject.parameters 
+        : { ...activeProject.parameters, [key]: finalValue },
       updatedAt: new Date().toISOString(),
     };
 
@@ -99,8 +99,14 @@ export const useFontStore = create<FontState>((set, get) => ({
 
   setTheme: (theme) => {
     set({ theme });
-    document.body.classList.toggle('light', theme === 'light');
-    document.body.classList.toggle('dark', theme === 'dark');
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
   },
 
   setMode: (activeMode) => set({ activeMode }),
@@ -108,10 +114,7 @@ export const useFontStore = create<FontState>((set, get) => ({
   pushToHistory: (project) => {
     const { history, historyIndex } = get();
     const newHistory = history.slice(0, historyIndex + 1);
-
-    // Limit history to 50 states
     if (newHistory.length >= 50) newHistory.shift();
-
     newHistory.push(JSON.parse(JSON.stringify(project)));
     set({
       history: newHistory,

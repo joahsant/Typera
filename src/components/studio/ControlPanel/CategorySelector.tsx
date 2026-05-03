@@ -4,38 +4,45 @@ import { useFontStore } from '../../../stores/fontStore';
 import { clsx } from 'clsx';
 
 const categories: { id: FontCategory; label: string; preview: string }[] = [
-  { id: 'serif', label: 'Serif', preview: 'A' },
-  { id: 'sans-serif', label: 'Sans', preview: 'A' },
-  { id: 'monospace', label: 'Mono', preview: 'A' },
-  { id: 'display', label: 'Display', preview: 'A' },
-  { id: 'slab', label: 'Slab', preview: 'A' },
-  { id: 'geometric', label: 'Geo', preview: 'A' },
+  { id: 'serif', label: 'Serif', preview: 'S' },
+  { id: 'sans-serif', label: 'Sans', preview: 'S' },
+  { id: 'monospace', label: 'Mono', preview: 'M' },
+  { id: 'display', label: 'Display', preview: 'D' },
+  { id: 'slab', label: 'Slab', preview: 'B' },
+  { id: 'geometric', label: 'Geo', preview: 'G' },
 ];
 
 const CategorySelector: React.FC = () => {
   const { activeProject, setParameter } = useFontStore();
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-3">
       {categories.map((cat) => (
         <button
           key={cat.id}
           onClick={() => setParameter('category' as any, cat.id)}
           className={clsx(
-            "flex flex-col items-center justify-center p-3 rounded border-2 transition-all duration-200 group",
+            "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-500 group relative overflow-hidden",
             activeProject.category === cat.id
-              ? "border-accent bg-accent/10"
-              : "border-border bg-base hover:border-border-strong"
+              ? "border-m3-primary bg-m3-primary/10 shadow-xl shadow-m3-primary/5"
+              : "border-m3-outline/5 bg-m3-surface-variant/30 hover:border-m3-primary/30"
           )}
         >
+          {activeProject.category === cat.id && (
+            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-m3-primary" />
+          )}
+          
           <span className={clsx(
-            "text-2xl mb-1 transition-transform group-hover:scale-110",
-            cat.id === 'serif' ? 'font-serif' : 'font-sans',
-            activeProject.category === cat.id ? "text-accent" : "text-primary"
+            "text-2xl mb-2 transition-all duration-500 group-hover:scale-125 group-hover:rotate-6 font-black",
+            cat.id === 'serif' ? 'font-serif' : 'font-display',
+            activeProject.category === cat.id ? "text-m3-primary" : "text-m3-on-surface-variant/20"
           )}>
             {cat.preview}
           </span>
-          <span className="text-[9px] uppercase tracking-widest font-medium text-muted">
+          <span className={clsx(
+            "text-[9px] uppercase tracking-[0.2em] font-black transition-colors duration-300",
+            activeProject.category === cat.id ? "text-m3-primary" : "text-m3-on-surface-variant/40"
+          )}>
             {cat.label}
           </span>
         </button>
